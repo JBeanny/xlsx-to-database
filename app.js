@@ -1,31 +1,13 @@
 const express = require("express");
 const app = express();
-const { connectToDatabase, insertToDatabase } = require("./configs/db");
-const excelDataConverter = require("./utils/excelConverter");
-const upload = require("./middlewares/multerStorage");
+const { connectToMsSqlDatabase } = require("./configs/db");
 
-connectToDatabase();
+connectToMsSqlDatabase();
 
-app.post("/api/v1/xlsx/insert", upload, (req, res) => {
-  try {
-    const data = excelDataConverter(req.file.buffer);
-    const table = req.body.table_name;
+const MSSQL_ROUTE = require("./routes/mssql.routes");
+const MYSQL_ROUTE = require("./routes/mysql.routes");
 
-    data.forEach((record) => {
-      insertToDatabase(record, table);
-    });
-
-    res.status(200).json({
-      status: 200,
-      message: "You have Succcessfully Uploaded",
-      results: data?.length,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: error,
-    });
-  }
-});
+app.use("/api/v1/mssql/xlsx", MSSQL_ROUTE);
+app.use("/api/v1/mysql/xlsx", MYSQL_ROUTE);
 
 module.exports = app;
